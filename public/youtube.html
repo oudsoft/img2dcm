@@ -1,0 +1,77 @@
+<!-- push.html -->
+<!DOCTYPE html>
+<head>
+		<link href="icon.png" rel="shortcut icon" type="image/x-icon"/>  
+		<title>youtube service</title>
+	    <meta charset = "utf-8" /> 
+		<meta name = "viewport" content = "width = device-width, initial-scale = 1">
+		<script src="lib/jquery-ui-1.12.1.custom/external/jquery/jquery.js"></script>
+		<script src="lib/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
+		<link href="lib/jquery-ui-1.12.1.custom/jquery-ui.css" rel="stylesheet"/>
+		<link href="lib/jquery-ui-1.12.1.custom/jquery-ui.theme.css" rel="stylesheet"/>
+		<!-- <link rel="stylesheet" href="css/login.css" /> -->
+	    <script src="lib/jquery.mobile-1.3.2/jquery.mobile-1.3.2.min.js"></script>
+		<link href="lib/jquery.mobile-1.3.2/jquery.mobile-1.3.2.min.css" rel="stylesheet">
+   </head>
+   <body>
+		<div data-role="page" id="MainPage"  data-theme="f">
+			<div data-role="header" data-theme="f">
+				<h2>Staff</h2>
+			</div>
+			<div data-role="main" class="ui-content" id="Messager">
+
+				<div id="MessageControl">
+					<div id="MessageScreen">
+
+					</div>
+					<div>&nbsp;</div>
+					<div id="MessageInput">
+						<label>Youtube VID:</label>
+						<input id="message" type="text" name="message" value="nAVk_KU_1Mw">
+						<div id="GetCmdDiv">
+							<button id="GetCmd">Get</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div data-role="footer" data-theme="f">
+				<h2>Staff</h2>
+			</div>
+		</div> 
+
+   </body>
+</html>
+
+<script>
+
+	$("#GetCmd").click(()=> {
+		vid = $("#message").val();
+		var ytUrl = "https://"+vid+"-focus-opensocial.googleusercontent.com/gadgets/proxy?container=none&url=https%3A%2F%2Fwww.youtube.com%2Fget_video_info%3Fvideo_id%3D" + vid;
+		fetch(ytUrl).then(response => {
+			$("#MessageScreen").empty();
+			if (response.ok) {
+				response.text().then(data => {
+					var data = parse_str(data);
+					console.log(data);
+					let metaData = JSON.parse(data.player_response);
+					console.log(metaData.playabilityStatus);
+					var VideoStream = metaData.streamingData.formats[0];
+					console.log(VideoStream.url);
+					$("#MessageScreen").html("<a href='" + VideoStream.url + "' target='_blank'>" + VideoStream.url + "</a>");
+				});
+			}
+		});
+	});
+
+	function parse_str(str) {
+		return str.split('&').reduce(function(params, param) {
+			var paramSplit = param.split('=').map(function(value) {
+				return decodeURIComponent(value.replace('+', ' '));
+			});
+			params[paramSplit[0]] = paramSplit[1];
+			return params;
+		}, {});
+	}
+
+</script>

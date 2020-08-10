@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<link href="icon.png" rel="shortcut icon" type="image/x-icon"/>
+		<title>img2dcm api test</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<script src="lib/jquery-ui-1.12.1.custom/external/jquery/jquery.js"></script>
+		<script src="lib/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
+		<link href="lib/jquery-ui-1.12.1.custom/jquery-ui.css" rel="stylesheet"/>
+		<script src="lib/simpleUpload.min.js"></script> 
+		<script src="lib/notify.min.js"></script>
+		<link rel="stylesheet" href="css/index.css" />
+ </head>
+	 <body>
+		<div id="Header" style="text-align: center;">
+			<h1>img2dcm api version 0.1.5</h1>
+			<h2>HTTP Test</h2>
+		</div>
+		<div id="MainForm">
+			<div id="UserGuide">
+				<h3>Be carefull.</h3>
+				<p>We are support upload with 2 file types, ".jpg" and ".pdf" only. And upload file size not greater than 10,000,000 Byte. </p>
+				<p>For ".pdf" type we will convert the first page only.</p>
+				<p>Now, If you're ready. Click <b>Choose File</b> for begin test.</p>
+			</div>
+			<div id="UploadFile" style="width: 100%; min-height:50px; text-align: center; margin: auto; background-color: yellow;">
+				<input type="file" id="filename" name="filename" style="margin: auto; text-align: center; margin-top: 15px;" onchange="doCheckFileUpload()"/>
+			</div>
+			<div id="ProgressBar" style="display: none;">&nbsp;</div>
+			<div id="InputData" style="display: none;">
+				<p>Please completely fill-in data on this Form. And then click OK Button for begin start convert and store.</p>
+				<p>For the Study ID field you can get it from system by click on <b>...</b> button on right hand.</p>
+				<table width="100%" cellspacing="0" cellpadding="2">
+					<tr>
+						<td><b>Study ID</b></td>
+						<td><input type="text" id="StudyID" size="60" style="min-height:40px;"/>&nbsp;&nbsp;<span style="color: red;">*</span>&nbsp;&nbsp;<button style="min-height:40px;" onclick="doOpenPatientBox()">  ...  </button></td>
+					</tr>
+					<tr>
+						<td colspan="2">&nbsp;</td>
+					</tr>
+					<tr>
+						<td><b>Store in PACS Target</b></td>
+						<td>Default</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<input type="hidden" id="InputFileName"/>
+							<input type="hidden" id="TempFile"/>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">&nbsp;</td>
+					</tr>
+					<tr>
+						<td colspan="2" align="center">
+							<button style="width: 90%; min-height:50px;" onclick="doTryStore()">OK</button>
+							<div>&nbsp;</div>
+							<button style="width: 90%; min-height:50px;" onclick="doBack()">Back</button>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">&nbsp;</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<div>
+								<h4>Remark.</h4>
+								<ul>
+									<li>On input field with <span style="color: red;">*</span> sign mark will not blank</li>
+									<li><b>Store in PACS Target</b> for this version will support for this Host (<b>Default</b> value)</li>
+								</ul>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">&nbsp;</td>
+					</tr>
+				</table>
+			</div>
+			<!--
+			<div id="ToggleAnnounceCommand" style="margin-top:50px; width: 100%; text-align: center;">
+				<button style="width: 90%; min-height:50px;" onclick="doToggleAnnounce()">Test with CURL Command</button>
+			</div>
+			-->
+		</div>
+		<!--
+		<div id="Announce" style="display: none;margin-top:50px;">
+			<b>In case of test this api with CURL command form your local machine </b>
+			<p>You can run this command Format from your localhost machine.</p>
+			<div>
+				<h3>Format</h3>
+				<p>curl -X POST -H "Content-Type: multipart/form-data" \ </p>
+				<p> -F "filename=@<span style="color: red;">&lt;jpg/pdf full filename and path&gt;</span>" \ </p>
+				<p> -F "StudyID=<span style="color: red;">&lt;uuuuuuuu-xxxxxxxx-yyyyyyyy-zzzzzzzz&gt;</span>" \ </p>
+				<p> -H "Authorization:<span style="color: blue;">&lt;Your Token&gt;</span>" \ </p>
+				<p> http://202.28.68.28:3000/img2dcm/converter </p>
+			</div>
+			<div>
+				<h3>Parameters</h3>
+				<p><b>filename</b> support 2 file types, ".jpg" and ".pdf" only.</p>
+				<p><b>StudyID</b> You can get Study ID from Orthanc system.</p>
+				<h3>Header Authorization</h3>
+				<p><b>Your Token</b> Please click <b>Token</b> yellow button on below for show your token.</p>
+			</div>
+
+			<div>
+				<h3>Example</h3>
+				<p>curl -X POST -H "Content-Type: multipart/form-data" \ </p>
+				<p> -F "filename=@<span style="color: red;">/path/to/mytestpdf.pdf</span>" \ </p>
+				<p> -F "StudyID=<span style="color: red;">11111111-22222222-33333333-44444444</span>" \ </p>
+				<p> -H "Authorization:<span style="color: blue;">&lt;MyToken&gt;</span>" \ </p>
+				<p> http://202.28.68.28:3000/img2dcm/converter </p>
+			</div>
+			<div>
+				<h3>Response Return</h3>
+				<h4>if OK</h4>
+				<p>Response with json <b>{"status":{"code":200,"text":"ok baby."}}</b></p>
+				<p>In this case You can lookup Patient at <a href="http://202.28.68.28:8044/app/explorer.html#studies?uuid=11111111-22222222-33333333-44444444" target="_blank">http://202.28.68.28:8044/app/explorer.html#studies?uuid=11111111-22222222-33333333-44444444c</a>  [P/W=demo/demo]</p>
+				<h4>if Error</h4>
+				<p>Response with json</p>
+				<h5>Study not found</h5>
+				<p><b>{status: {code: 401, description: 'Not found study ID'}}</b></p>
+				<h5>Internal Error</h5>
+				<p><b>{"status":{"code":500,"text":"Internal Error"}}</b></p>
+			</div>
+			<button style="width: 90%; min-height:35px; background-color: yellow;" onclick="doOpenTokenBox()">Token</button>
+			<div>&nbsp;&nbsp;</div>
+			<button style="width: 90%; min-height:35px;" onclick="doDownloadAPIDoc()">Download Document</button>
+			<div>&nbsp;&nbsp;</div>
+			<button style="width: 90%; min-height:35px;" onclick="doToggleAnnounce()">Close</button>
+		</div>
+		-->
+		<div id="LogoutCommand" style="margin-top:50px; width: 100%; text-align: center; display: none">
+			<button style="width: 90%; min-height:35px; background-color: yellow;" onclick="doOpenTokenBox()">Token</button>
+			<div>&nbsp;&nbsp;</div>
+			<button style="width: 90%; min-height:35px;" onclick="doDownloadAPIDoc()">Download Document</button>
+			<div>&nbsp;&nbsp;</div>
+			<button style="width: 90%; min-height:50px;" onclick="doLogout()">Logout</button>
+		</div>
+
+		<div id="Footer">
+
+		</div>
+	</body>
+</html>
+
+<div id="LoadStudyBox">
+	<div>
+		<b>Patients:</b>
+		<select id="AllPatientSelect" onchange="doPatientChange()"></select>&nbsp;&nbsp;You can select patient for select study.
+	</div>
+	<div>
+		<b>Studies:</b>&nbsp;&nbsp;Select study ID that you want insert new series with your file (jpg/pdf) last step. 
+		<select id="AllStudiesSelect" multiple></select>
+	</div>
+
+	<div id="ButtonCmd" style="width: 100%; text-align: center;margin-top: 20px;">
+		<button onclick="doApplyStudy()"> Apply </button>	
+	</div>
+</div>
+
+<div id="ShowTokenBox">
+	<div id="YourTokenDiv">
+		<textarea id="yourtoken" cols="50" rows="10" readonly></textarea>
+		<button onclick="doCopyToken()"> Copy To Clipboard </button>
+	</div>
+	<p>Please copy and save this token as secret.</p>
+	<p>We are not save in our database.</p>
+	<div id="ButtonCmd" style="width: 100%; text-align: center;margin-top: 20px;">
+		<button onclick="doCloseTokenBox()"> Close </button>	
+	</div>
+</div>
+
+<script type="text/javascript">
+	console.log(localStorage.getItem('token'));
+	const host = window.location.host;
+	const rootname = window.location.pathname.split('/')[1];
+	const defFileUploadSize = 10000000;
+
+	var allPatients;
+
+	$(document).ready(function() {
+		/*
+		ถ้ากำหนดแบบนี้ การ upload file จะ error ที่ server
+		$.ajaxSetup({
+			headers: {
+				'Content-Type': 'application/json',
+				'Accept': 'application/json',
+				'Hello': 'World'
+			}
+		});
+		*/
+		/*
+		ควรใช้วิธีนี้
+
+		let url='https://server.test-cors.org/server?enable=true&status=200&methods=POST&headers=My-First-Header,My-Second-Header';
+
+		$.ajax({
+			type: 'POST',
+			url: url,
+			headers: {
+				"My-First-Header":"first value",
+				"My-Second-Header":"second value",
+				'Hello': 'World'
+			}
+		}).done(function(data) {
+			alert(data[0].request.httpMethod + ' was send - open chrome console> network to see it');
+		});
+
+		*/
+		$('#LoadStudyBox').dialog({ 
+			modal: true, autoOpen: false, width: 490, resizable: false, title: 'Patients'
+		});
+		$('#ShowTokenBox').dialog({ 
+			modal: true, autoOpen: false, width: 490, resizable: false, title: 'Your Token'
+		});
+		doCheckAuth().then((sts) => {
+			console.log(sts);
+			if (sts.status.code == 200){
+				$('#LogoutCommand').show();
+			} else {
+				$('#LogoutCommand').hide();
+				let url = 'http://' + host + '/' + rootname + '/res/login.html';;
+				window.location.replace(url);
+			}
+		});
+		$("#AllStudiesSelect").on('dblclick', function(e) {
+			doShowStudyDetail();
+		});
+	});
+
+	function doCheckAuth() {
+		return new Promise(function(resolve, reject) {
+			let testURL = "/" + rootname + "/testauth";
+			$.ajax({
+				type: 'POST',
+				url: testURL ,
+				headers: {
+					authorization: localStorage.getItem('token')
+				} 
+			}).then(function(httpdata) {
+				resolve(httpdata);
+			});
+		});
+	}
+
+	function doLogout() {
+		localStorage.removeItem('token');
+		$('#LogoutCommand').hide();
+		let url = 'http://' + host + '/' + rootname + '/res/login.html';;
+		window.location.replace(url);
+	}
+
+	function doCheckFileUpload() {
+		let file = $('#filename')[0].files[0];
+		let fileNames = file.name.split('.');
+		console.log(fileNames);
+		let extFileName = fileNames[1];
+		var fileSize = file.size;
+		console.log(fileSize);
+
+		if (fileSize <= defFileUploadSize) {
+			if ((extFileName <= 'jpg') || (extFileName <= 'pdf')) {
+				doCheckAuth().then((sts) => {
+					if (sts.status.code == 200){
+						var uploadUrl = "/" + rootname+ "/uploadinputfile";
+						$('#filename').simpleUpload(uploadUrl, {
+							start: function(file){
+								$('#ProgressBar').show();
+							},
+							progress: function(progress){
+								$('#ProgressBar').html(Math.round(progress) + " %");
+							},
+							success: function(data){
+								console.log('Uploaded.', data);
+								$('#ProgressBar').html("<p>" + JSON.stringify(data) + "</p>");
+								setTimeout(() => {
+									$('#UploadFile').hide();
+									$('#UserGuide').hide();
+									$('#InputData').show();
+									$('#StudyID').val('');
+									$('#TempFile').val(data.status.tempFile);
+									$('#InputFileName').val(fileNames.join('.'));
+									$('#ProgressBar').hide();
+								}, 1500);
+							},
+							error: function(error){
+								$('#ProgressBar').html("<b>Failure!</b><p>" + error.name + ": </p><p>" + error.message + "</p>");
+							}
+						});
+					} else {
+						let url = 'http://' + host + sts.url;
+						window.location = url;
+					}
+				});
+			} else {
+				alert('Not Support ' + extFileName + ' Type.');
+			}
+		} else {
+			alert('File not excess ' + defFileUploadSize + ' Byte.');
+		}
+	}
+
+	function doCheckInputData() {
+		//let patientName = $('#PatientName').val();
+		let studyID = $('#StudyID').val();
+		//let patientID = $('#PatientID').val();
+		let inputFileName = $('#InputFileName').val();
+		let tempFile = $('#TempFile').val();
+		let pacsTarget = {};
+		/*
+		if (patientName === '')	{
+			alert('Please tell the Patient Name.');
+			$('#PatientName').focus();
+			return;
+		} else if (patientID === '')	{
+			alert('Please tell the Patient ID.');
+			$('#PatientID').focus();
+			return;
+		} else if (studyID === '')	{
+		*/
+		if (studyID === '')	{
+			alert('Please tell the Study ID.');
+			$('#StudyID').focus();
+			return;
+		} else {
+			return {InputFileName: inputFileName, TempFile: tempFile, StudyID: studyID, PacsTarget: pacsTarget};
+		}
+	}
+
+	function doRequestStore(params){
+		return new Promise(function(resolve, reject) {
+			var url = "/" + rootname + "/store";
+			/*
+			$.post(url, params, function(data){
+				resolve(data);
+			}).fail(function(error) { 
+				console.log(JSON.stringify(error));
+				reject(error); 
+			});
+			*/
+			$.ajax({
+				type: 'POST',
+				url: url ,
+				headers: {
+					authorization: localStorage.getItem('token')
+				},
+				dataType: 'json',
+				data: params
+			}).then(function(httpdata) {
+				resolve(httpdata);
+			});
+		});
+	}	
+
+	function doTryStore() {
+		let dataObj = doCheckInputData();
+		if (dataObj){
+			doCallStudy(dataObj.StudyID).then((studyRes) => {
+				if(studyRes.status.code == 200) {
+					doRequestStore(dataObj).then((response) => {
+						console.log(response);
+						if (response.status.code === 200)	{
+							alert('Congratulation!!\nNow, you can check the Stored at\nhttp://202.28.68.28:8044\nwith your rigth access.');
+						} else {
+							alert('Sorry\nSomething wrong in your Store.\nPlease  Try again.');
+						}
+						doBack();
+					});
+				} else {
+					alert('Not found your study ID in system.\nPlease  Try again.');
+				}
+			});
+		}
+	}
+
+	function doBack() {
+		$('#UserGuide').show();
+		$('#UploadFile').show();
+		$('#InputData').hide();
+		$('#Announce').hide();
+	}
+	/*
+	function doToggleAnnounce() {
+		$('#ToggleAnnounceCommand').toggle();
+		$('#Announce').toggle();
+	}
+	*/
+	function doOpenPatientBox() {
+		doCallAllPatents().then((httpres) => {
+			allPatients = httpres.patients;
+			console.log(allPatients);
+			$('#AllPatientSelect').empty();
+			allPatients.forEach((item, i) => {
+				$('#AllPatientSelect').append($('<option>', {
+					value: item.ID,
+					text: item.MainDicomTags.PatientName
+				}));
+				if (i == 0)	{
+					$('#AllStudiesSelect').empty();
+					item.Studies.forEach((study) => {
+						$('#AllStudiesSelect').append($('<option>', {
+							value: study,
+							text: study
+						}));
+					});
+				}
+			});
+		});
+		setTimeout(() => {
+			$('#LoadStudyBox').dialog('open');
+		}, 2000);
+	}
+
+	function doCallAllPatents(){
+		return new Promise(function(resolve, reject) {
+			var url = "/" + rootname + "/patients";
+			/*
+			$.get(url, {}, function(data){
+				resolve(data);
+			}).fail(function(error) { 
+				console.log(JSON.stringify(error));
+				reject(error); 
+			});
+			*/
+			$.ajax({
+				type: 'GET',
+				url: url ,
+				headers: {
+					authorization: localStorage.getItem('token')
+				}
+			}).then(function(httpdata) {
+				resolve(httpdata);
+			});
+
+		});
+	}	
+
+	function doCallStudy(studyID){
+		return new Promise(function(resolve, reject) {
+			var url = "/" + rootname + "/studies/" + studyID;
+			$.get(url, {}, function(data){
+				resolve(data);
+			}).fail(function(error) { 
+				console.log(JSON.stringify(error));
+				reject(error); 
+			});
+		});
+	}	
+
+	function doPatientChange() {
+		let patientIndex = $('#AllPatientSelect').prop('selectedIndex');
+		let patientValue = $('#AllPatientSelect').val();
+		let patient = allPatients.filter((item) => {
+			if (item.ID === patientValue){
+				return item;
+			}
+		});
+		console.log(patient);
+		$('#AllStudiesSelect').empty();
+		patient[0].Studies.forEach((study) => {
+			$('#AllStudiesSelect').append($('<option>', {
+				value: study,
+				text: study
+			}));
+		});
+	}
+
+	function doApplyStudy() {
+		let studyIndex = $('#AllStudiesSelect').prop('selectedIndex');
+		let studyValue = $('#AllStudiesSelect').val();
+		if (studyIndex >= 0){
+			$('#StudyID').val(studyValue);
+			$('#LoadStudyBox').dialog('close');
+		} else {
+			alert('Please select Study ID that you want insert new series.');
+		}
+	}
+
+	function doShowStudyDetail() {
+		let studyIDValue = $('#AllStudiesSelect').val();
+		doCallStudy(studyIDValue).then((studyRes) => {
+			alert(JSON.stringify(studyRes.studies));
+		});
+	}
+
+	function doOpenTokenBox() {
+		$('#ShowTokenBox').dialog('open');
+		$('#yourtoken').val(localStorage.getItem('token'));
+	}
+
+	function doCloseTokenBox() {
+		$('#ShowTokenBox').dialog('close');
+	}
+
+	function doCopyToken() {
+		$('#yourtoken').select();
+		document.execCommand('copy');
+	}
+
+	function doDownloadAPIDoc() {
+		let docURL = '/' + rootname + '/res/doc/Img2dcm_api_015.pdf';
+		window.open(docURL);
+	}
+</script>

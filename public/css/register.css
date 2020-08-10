@@ -1,0 +1,6 @@
+/* register.css */
+@font-face { font-family: THNiramitAS; src: url("../font/THChakraPetch/THChakraPetch.ttf");}
+#UserRegisterPanel{
+	font-family: THChakraPetch; font-size: 18px;
+
+}

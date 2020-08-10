@@ -1,0 +1,6 @@
+/*index.css*/
+@font-face { font-family: THNiramitAS; src: url("../font/THChakraPetch/THChakraPetch.ttf");}
+body, input[type=file], input[type=button], button,  input[type=text]{
+	font-family: THChakraPetch; font-size: 18px;
+
+}

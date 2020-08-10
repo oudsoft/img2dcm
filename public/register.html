@@ -1,0 +1,157 @@
+<!-- register.html -->
+<!DOCTYPE html>
+<html>
+	<head>
+	    <meta charset = "utf-8" /> 
+		<link href="icon.png" rel="shortcut icon" type="image/x-icon"/>      
+		<title>img2dcm api user register</title>
+		<script src="lib/jquery-ui-1.12.1.custom/external/jquery/jquery.js"></script>
+		<script src="lib/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
+		<link href="lib/jquery-ui-1.12.1.custom/jquery-ui.css" rel="stylesheet"/>
+		<link rel="stylesheet" href="css/register.css" />
+	</head>
+	<body>
+		<div id="UserRegisterPanel">
+			<div id="RegisterBoard">
+				<h1>User Register</h1>
+			</div>
+			<div id="InputData">
+				<p>Please completely fill-in data on Rgister Form. And then click OK Button for register</p>
+				<p></p>
+				<table width="100%" cellspacing="0" cellpadding="2">
+					<tr>
+						<td><b>Email</b></td>
+						<td><input type="text" id="email" size="60" style="min-height:40px;"/>&nbsp;&nbsp;<span style="color: red;">*</span></td>
+					</tr>
+					<tr>
+						<td><b>Password</b></td>
+						<td><input type="password" id="password1" size="60" style="min-height:40px;"/>&nbsp;&nbsp;<span style="color: red;">*</span></td>
+					</tr>
+					<tr>
+						<td><b>Password Again</b></td>
+						<td><input type="password" id="password2" size="60" style="min-height:40px;"/>&nbsp;&nbsp;<span style="color: red;">*</span></td>
+					</tr>
+					<tr>
+						<td colspan="2">&nbsp;</td>
+					</tr>
+					<tr>
+						<td colspan="2" align="center">
+							<button style="width: 90%; min-height:50px;" onclick="doTryRegister()">OK</button>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">&nbsp;</td>
+					</tr>
+					<tr>
+						<td colspan="2">&nbsp;</td>
+					</tr>
+				</table>
+			</div>
+
+		</div>
+	</body>
+</html>
+
+<script type="text/javascript">
+	const host = window.location.host;
+	const rootname = window.location.pathname.split('/')[1];
+
+	function doValidEmailFormat(email) {
+		const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+		return re.test(email);
+	}
+
+	function doValidPassword(pass1, pass2) {
+		if (pass1 === pass2) {
+			return true
+		} else {
+			return false;
+		}
+	}
+
+	function doValidateForm() {
+		let email = $('#email').val();
+		let password1 = $('#password1').val();
+		let password2 = $('#password2').val();
+		if (doValidEmailFormat(email)==true){
+			if (password1 !== '') {
+				if (password2 !== '')	{
+					if (doValidPassword(password1, password2) == true)	{
+						return true;
+					} else {
+						alert('Password must be match.');
+						$('#password2').focus();
+						return false;
+					}
+				} else {
+					alert('Please try password agian.');
+					$('#password2').focus();
+					return false;
+				}
+			} else {
+				alert('Password not allow blank.');
+				$('#password1').focus();
+				return false;
+			}
+		} else {
+			alert('Your Email Address\'s Format incorrect');
+			$('#email').focus();
+			return false;
+		}
+	}
+
+	function doTryRegister() {
+		let formChecked = doValidateForm();
+		console.log(formChecked);
+		if (formChecked)	{
+			let email = $('#email').val();
+			doRequestCheckDuplicateEmail({email: email}).then((sts) => {
+				console.log(sts);
+				console.log(sts.ur.length);
+				if (sts.ur.length == 0){
+					let password1 = $('#password1').val();
+					let params = {email: email, password: password1};
+					doRequestRegister(params).then((sts) => {
+						if (sts.status.code == 200)	{
+							alert('Congratulation!!!\nRegister finish.\nGo to Login page for test your last account registered.');
+							window.location.href = '/' + rootname + '/res/login.html';
+						} else {
+							console.log(sts);
+							alert('Sorry, something wrong, please try again.');
+						}
+					});
+				} else {
+					alert('Found this email in database, please change another email.');
+					$('#email').focus();
+					return false;
+				}
+			});
+		}
+	}
+
+	function doRequestRegister(params) {
+		return new Promise(function(resolve, reject) {
+			var url = "/" + rootname + "/register";
+			$.post(url, params, function(data){
+				resolve(data);
+			}).fail(function(error) { 
+				console.log(JSON.stringify(error));
+				reject(error); 
+			});
+		});
+	}
+
+	function doRequestCheckDuplicateEmail(params) {
+		return new Promise(function(resolve, reject) {
+			var url = "/" + rootname + "/emailduplicate";
+			$.post(url, params, function(data){
+				resolve(data);
+			}).fail(function(error) { 
+				console.log(JSON.stringify(error));
+				reject(error); 
+			});
+		});
+	}
+
+
+</script>

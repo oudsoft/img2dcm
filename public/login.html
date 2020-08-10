@@ -1,0 +1,118 @@
+<!-- login.html -->
+<!DOCTYPE html>
+<html>
+	<head>
+	    <meta charset = "utf-8" /> 
+		<link href="icon.png" rel="shortcut icon" type="image/x-icon"/>      
+		<title>img2dcm api user login</title>
+		<script src="lib/jquery-ui-1.12.1.custom/external/jquery/jquery.js"></script>
+		<script src="lib/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
+		<link href="lib/jquery-ui-1.12.1.custom/jquery-ui.css" rel="stylesheet"/>
+		<link rel="stylesheet" href="css/login.css" />
+	</head>
+	<body>
+		<div id="UserLoginPanel">
+			<div id="LoginBoard">
+				<h1>User Login</h1>
+			</div>
+			<div id="LoginFormDiv">
+				<form id="LoginForm" method="post">
+				<div id="UserNameInputDiv">
+					<lable><h3>Email</h3><lable>
+					<input type="text" id="username" size="50" placeholder="Your Email"/> 
+				</div>
+				<div id="PasswordInputDiv">
+					<lable><h3>Password</h3><lable>
+					<input type="password" id="password" size="50"/> 
+				</div>
+				<div id="SubmitCmdDiv">
+					<input type="button" id="LoginCmd" value="Login" onclick="doUserlogin()"/>
+				</div>
+				</form>
+			</div>	
+			<div id="LoginMessageDiv"></div>
+		</div>
+		<div>
+			<a href="#" onclick="doOpenRegisterPage()">Sign-Up</a>
+		</div>
+	</body>
+</html>		
+
+<script type="text/javascript">
+	function urlQueryToObject(url) {	
+		let result = url.split(/[?&]/).slice(1).map(function(paramPair) {
+					return paramPair.split(/=(.+)?/).slice(0, 2);
+			}).reduce(function (obj, pairArray) {            
+					obj[pairArray[0]] = pairArray[1];
+					return obj;
+			}, {});
+		return result;
+	}
+
+	let rootName ='';
+	let loginType;
+
+	$(document).ready(function() {
+		rootName = doGetRootName();
+		let queries = urlQueryToObject(location.search)
+		console.log(queries);
+		loginType = queries.t;
+		console.log(loginType);
+		if (loginType){
+			initControl();
+		}
+	});
+
+	function doGetRootName(){
+		let paths = window.location.pathname.split('/');
+		return paths[1];
+	}
+
+	function initControl(){
+
+	}
+
+	function doUserlogin(){
+		let username = $('#username').val();
+		if (username) {
+			let password = $('#password').val();
+			let params = {username: username, password: password, type: loginType};
+			doRequestLogin(params).then((resp)=>{
+				console.log(resp);
+				if (resp.status.code === 200){
+					localStorage.setItem('token', resp.token)
+					setTimeout(()=>{
+						window.location.href = resp.url;
+					}, 500);
+				} else if (resp.status.code === 210){
+					alert('Sorry, your accout have some problem.');
+			    	setTimeout(()=>{
+			    		window.location.href = resp.url;
+			    	}, 500);
+				} else {
+					alert('Wrong Email and Password.');
+					$('#username').focus();
+				}
+			});
+		} else {		
+			alert('Email not Empty allow.');
+			$('#username').focus();
+		}
+	}
+
+	function doRequestLogin(params){
+		return new Promise(function(resolve, reject) {
+			var url = "/" + rootName + "/login";
+			$.post(url, params, function(data){
+				resolve(data);
+			}).fail(function(error) { 
+				console.log(JSON.stringify(error));
+				reject(error); 
+			});
+		});
+	}
+
+	function doOpenRegisterPage() {
+		window.location.href = '/' + rootName + '/res/register.html';
+	}
+</script>

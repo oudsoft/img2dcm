@@ -1,0 +1,22 @@
+/* login.css */
+@font-face { font-family: THNiramitAS; src: url("../font/THChakraPetch/THChakraPetch.ttf");}
+#UserLoginPanel{
+	font-family: THChakraPetch; font-size: 24px;
+	color: white;
+	background: red;
+	padding: 15px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	-ms-transform: translateX(-50%) translateY(-50%);
+	-webkit-transform: translate(-50%,-50%);
+	transform: translate(-50%,-50%);
+	border:5px solid #FC0;
+	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,.2);
+	-moz-box-shadow: 0 1px 2px rgba(0,0,0,.2);
+	box-shadow: 0 1px 2px rgba(0,0,0,.2);
+ }
+ #LoginBoard {text-align: center;}
+ #SubmitCmdDiv {text-align: center; margin-top: 10px;}
+input[type="text"], input[type="password"]{padding: 20px 10px; line-height: 20px; font-size: 24px}
+input[type="button"] { font-size: 24px;}

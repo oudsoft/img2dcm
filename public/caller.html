@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<link href="icon.png" rel="shortcut icon" type="image/x-icon"/>
+		<title>img2dcm api test</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<script src="lib/jquery-ui-1.12.1.custom/external/jquery/jquery.js"></script>
+		<script src="lib/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
+		<link href="lib/jquery-ui-1.12.1.custom/jquery-ui.css" rel="stylesheet"/>
+		<script src="lib/simpleUpload.min.js"></script> 
+		<script src="lib/notify.min.js"></script>
+ </head>
+ <body>
+	<div>caller.html</div>
+ </body>
+</html>
+<!--
+	WSL-2
+		https://phaisarn.com/2020/%e0%b8%95%e0%b8%b4%e0%b8%94%e0%b8%95%e0%b8%b1%e0%b9%89%e0%b8%87-wsl-2/
+	Docker Desktop for WSL 2
+		https://phaisarn.com/2020/docker-desktop-wsl2/
+-->
+
+<script type="text/javascript">
+	const hostname = window.location.hostname;
+	const rootname = window.location.pathname.split('/')[1];
+	
+	console.log(rootname);
+
+	const patientsURL = 'patients';
+	const keyURL = 'genauthtokenkey';
+	const testauthURL = 'testauth';
+
+	let url= "/" + rootname + "/" + keyURL;
+
+	$.ajax({
+		type: 'POST',
+		//type: 'GET',
+		url: url,
+		headers: {
+			"My-First-Header":"first value",
+			"My-Second-Header":"second value",
+			'Hello': 'World'
+		},
+		//body: {username: 'tangget'}
+		dataType: 'json',
+		data: {username: 'tangget'}
+	}).then(function(data) {
+		//alert(data[0].request.httpMethod + ' was send - open chrome console> network to see it');
+		console.log(data);
+		let testURL = "/" + rootname + "/" + testauthURL;
+		$.ajax({
+			type: 'POST',
+			url: testURL ,
+			headers: {
+				//authorization: data.token
+				authorization: localStorage.getItem('token')
+			} 
+		}).then(function(httpdata) {
+			console.log(httpdata);
+		});
+	});
+
+</script>
